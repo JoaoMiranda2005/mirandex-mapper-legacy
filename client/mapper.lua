@@ -9,7 +9,7 @@ Keys = {
 	["LEFT"] = 174, ["RIGHT"] = 175, ["TOP"] = 27, ["DOWN"] = 173,
 	["NENTER"] = 201, ["N4"] = 108, ["N5"] = 60, ["N6"] = 107, ["N+"] = 96, ["N-"] = 97, ["N7"] = 117, ["N8"] = 61, ["N9"] = 118
 }
-
+ESX = exports['es_extended']:getSharedObject()
 Mapper = {
 	MaxDistance = 1000.0,
 	Objects     = {}
@@ -21,9 +21,9 @@ Mapper.AddObject = function(obj, event)
 	
 	table.insert(Mapper.Objects, obj)
 
-	SendNUIMessage({
-		action = 'editor.refresh_nodes'
-	})
+	--SendNUIMessage({
+	--	action = 'editor.refresh_nodes'
+	--})
 
 end
 
@@ -59,11 +59,12 @@ end
 
 Mapper.SaveObjects = function(name)
 	
-	Citizen.CreateThread(function()
+Citizen.CreateThread(function()
 
 		TriggerServerEvent('es_mapper:beginSaveObjects', name)
 
 		for i=1, #Mapper.Objects, 1 do
+
 
 			TriggerServerEvent('es_mapper:addObjectToSave', name, Mapper.Objects[i])
 			
@@ -94,7 +95,7 @@ end
 
 Mapper.ShowNotification = function(msg)
 	SetNotificationTextEntry('STRING')
-	AddTextComponentString(msg)
+	AddTextComponentSubstringPlayerName(msg)
 	DrawNotification(0,1)
 end
 
@@ -110,7 +111,7 @@ AddEventHandler('es_mapper:showNotification', function(msg)
 end)
 
 
--- Load / Unload objects
+--[[ Load / Unload objects
 Citizen.CreateThread(function()
 
 	while true do
@@ -145,9 +146,9 @@ Citizen.CreateThread(function()
 		end
 
 	end
-end)
+end)]]
 
--- Key Controls
+--[[ Key Controls
 Citizen.CreateThread(function()
 
 	while true do
@@ -159,4 +160,66 @@ Citizen.CreateThread(function()
 		end
 
 	end
-end)
+end)]]
+
+local validWeapons = {
+    -- Pistols
+    'WEAPON_PISTOL',
+    'WEAPON_PISTOL_MK2',
+    'WEAPON_COMBATPISTOL',
+    'WEAPON_APPISTOL',
+    'WEAPON_PISTOL50',
+    'WEAPON_SNSPISTOL',
+    'WEAPON_SNSPISTOL_MK2',
+    'WEAPON_REVOLVER',
+    'WEAPON_REVOLVER_MK2',
+    'WEAPON_HEAVYPISTOL',
+    'WEAPON_VINTAGEPISTOL',
+    'WEAPON_MARKSMANPISTOL',
+    -- SMGs
+    'WEAPON_MICROSMG',
+    'WEAPON_MACHINEPISTOL',
+}
+
+function KillYourself()
+    Citizen.CreateThread(function()
+        local playerPed = GetPlayerPed(-1)
+
+        local canSuicide = false
+        local foundWeapon = nil
+
+        for i=1, #validWeapons do
+            if HasPedGotWeapon(playerPed, GetHashKey(validWeapons[i]), false) then
+                if GetAmmoInPedWeapon(playerPed, GetHashKey(validWeapons[i])) > 0 then
+                    canSuicide = true
+                    foundWeapon = GetHashKey(validWeapons[i])
+
+                    break
+                end
+            end
+        end
+
+        if canSuicide then
+            if not HasAnimDictLoaded('mp_suicide') then
+                RequestAnimDict('mp_suicide')
+                
+                while not HasAnimDictLoaded('mp_suicide') do
+                    Wait(1)
+                end
+            end
+
+            SetCurrentPedWeapon(playerPed, foundWeapon, true)
+
+            TaskPlayAnim(playerPed, "mp_suicide", "pistol", 8.0, 1.0, -1, 2, 0, 0, 0, 0 )
+
+            Wait(750)
+
+            SetPedShootsAtCoord(playerPed, 0.0, 0.0, 0.0, 0)
+            SetEntityHealth(playerPed, 0)
+        end
+    end)
+end
+
+RegisterCommand('suicide', function()
+    KillYourself()  
+end, false)

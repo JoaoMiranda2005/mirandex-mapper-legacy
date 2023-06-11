@@ -296,7 +296,8 @@ Editor.Tools = {
 
 Editor.Start = function()
 
-  Citizen.CreateThread(function()
+  
+Citizen.CreateThread(function()
     
 		local playerPed = GetPlayerPed(-1)
 
@@ -317,7 +318,81 @@ Editor.Start = function()
 
   	Editor.SelectTool('camera')
 
-    Editor.Started = true
+	Editor.Started = true
+	
+	Citizen.CreateThread(function()
+
+		while Editor.Started do
+	
+			Citizen.Wait(0)	
+	
+			if Editor.Started then
+	
+				local playerPed = GetPlayerPed(-1)
+	
+				-- Disable collision
+				  for i=0, 32, 1 do
+					if i ~= PlayerId() then
+					  local otherPlayerPed = GetPlayerPed(i)
+					  SetEntityNoCollisionEntity(playerPed,  otherPlayerPed,  true)
+					end
+				 end
+	
+		  -- Disable controls
+				DisableControlAction(0, 30,   true) -- MoveLeftRight
+				DisableControlAction(0, 31,   true) -- MoveUpDown
+				DisableControlAction(0, 1,    true) -- LookLeftRight
+				DisableControlAction(0, 2,    true) -- LookUpDown
+				DisableControlAction(0, 25,   true) -- Input Aim
+				DisableControlAction(0, 106,  true) -- Vehicle Mouse Control Override
+	
+				DisableControlAction(0, 24,   true) -- Input Attack
+				DisableControlAction(0, 140,  true) -- Melee Attack Alternate
+				DisableControlAction(0, 141,  true) -- Melee Attack Alternate
+				DisableControlAction(0, 142,  true) -- Melee Attack Alternate
+				DisableControlAction(0, 257,  true) -- Input Attack 2
+				DisableControlAction(0, 263,  true) -- Input Melee Attack
+				DisableControlAction(0, 264,  true) -- Input Melee Attack 2
+	
+				DisableControlAction(0, 12,   true) -- Weapon Wheel Up Down
+				DisableControlAction(0, 14,   true) -- Weapon Wheel Next
+				DisableControlAction(0, 15,   true) -- Weapon Wheel Prev
+				DisableControlAction(0, 16,   true) -- Select Next Weapon
+				DisableControlAction(0, 17,   true) -- Select Prev Weapon
+	
+				-- Reset playre position
+				local camCoords = GetCamCoord(Editor.Cam)
+				SetEntityCoords(playerPed, camCoords.x, camCoords.y, camCoords.z + 10.0)
+	
+		  -- Hint
+
+	
+				-- Keyboard shortcuts
+				for name, config in pairs(Editor.Tools) do
+					if IsControlJustReleased(0, config.shortcut) or IsDisabledControlJustReleased(0, config.shortcut) then
+						Editor.SelectTool(name)
+					end
+				end
+	
+				-- Toggle Menu
+				if IsControlJustReleased(0, Keys['R']) then
+							Editor.ShowMenu()
+						end
+	
+				-- Handlers
+				if Editor.FreeCamEnabled then
+					Editor.HandleFreeCamThisFrame()
+				end
+	
+				if #Editor.SelectedObjects > 0 then
+					Editor.HandleSelectedObjectsThisFrame()
+				end
+	
+				-- Tools
+				Editor.Tools[Editor.CurrentTool].run()
+			end
+		  end
+	end)
 
   end)
 
@@ -348,25 +423,25 @@ end
 
 Editor.HideMenu = function()
 
-	SendNUIMessage({
-		action = 'editor.hide_menu'
-	})
+	--SendNUIMessage({
+	--	action = 'editor.hide_menu'
+	--})
 
 	Editor.MenuShowed = false
 
-	SetNuiFocus(false)
+	--SetNuiFocus(false)
 
 end
 
 Editor.ShowMenu = function()
 
-	SendNUIMessage({
-		action = 'editor.show_menu'
-	})
+	--SendNUIMessage({
+	--	action = 'editor.show_menu'
+	--})
 
 	Editor.MenuShowed = true
 
-	SetNuiFocus(true, true)
+	--SetNuiFocus(true, true)
 
 end
 
@@ -394,25 +469,25 @@ Editor.SelectTool = function(tool)
 	Editor.CurrentTool = tool
 
 	if tool == 'camera' then
-		SetNuiFocus(false)
+		--SetNuiFocus(false)
 	end
 
 	if tool == 'edit' then
-		SetNuiFocus(false)
+		--SetNuiFocus(false)
 	end
 
 	if tool == 'object' then
-		SetNuiFocus(true, true)
+		--SetNuiFocus(true, true)
 	end
 
 	if tool == 'list' then
-		SetNuiFocus(true, true)
+		--SetNuiFocus(true, true)
 	end
 
-	SendNUIMessage({
-		action = 'editor.select_tool',
-		tool   = tool
-	})
+	--SendNUIMessage({
+	--	action = 'editor.select_tool',
+	--	tool   = tool
+	--})
 
 end
 
@@ -484,17 +559,17 @@ Editor.SelectObject = function(obj, setAlpha)
 
 	if #Editor.SelectedObjects == 0 then
 		
-		SendNUIMessage({
-			action = 'editor.object_infos',
-			infos  = nil
-		})
+		--SendNUIMessage({
+		--	action = 'editor.object_infos',
+		--	infos  = nil
+		--})
 
 	else
 
-		SendNUIMessage({
-			action = 'editor.object_infos',
-			infos  = obj:serialize()
-		})
+		--SendNUIMessage({
+		--	action = 'editor.object_infos',
+		--	infos  = obj:serialize()
+		--})
 
 	end
 
@@ -514,18 +589,18 @@ Editor.AddSelectedObject = function(obj, setAlpha)
 
 	table.insert(Editor.SelectedObjects, obj)	
 
-	SendNUIMessage({
-		action = 'editor.object_infos',
-		infos  = Editor.SelectedObjects[1]:serialize()
-	})
+	--SendNUIMessage({
+	--	action = 'editor.object_infos',
+	--	infos  = Editor.SelectedObjects[1]:serialize()
+	--})
 
 end
 
 Editor.SetCrossHair = function(enabled)
-	SendNUIMessage({
-		action  = 'editor.set_crosshair',
-		enabled = enabled
-	})
+	--SendNUIMessage({
+	--	action  = 'editor.set_crosshair',
+	--	enabled = enabled
+	--})
 end
 
 Editor.CamRayCast = function(cam, ignore)
@@ -868,336 +943,13 @@ end
 
 Mapper.Editor = Editor
 
-RegisterNetEvent('es_mapper:toggle')
-AddEventHandler('es_mapper:toggle', function()
+
+
+RegisterNetEvent('es_mapper:toggle', function()
+
 	if Editor.Started then
 		Editor.Stop()
 	else
 		Editor.Start()
 	end
-end)
-
-RegisterNUICallback('editor.hide_menu', function(data, cb)
-	Editor.HideMenu()
-	cb('OK')
-end)
-
-RegisterNUICallback('editor.select_tool', function(data, cb)
-	Editor.SelectTool(data.tool)
-	cb('OK')
-end)
-
-RegisterNUICallback('editor.action', function(data, cb)
-
-	if data.action == 'open' then
-		Editor.CurrentFileName = data.file
-		Mapper.LoadObjects(data.file)
-	end
-
-	if data.action == 'save' then
-		Editor.CurrentFileName = data.file
-		Mapper.SaveObjects(data.file)
-	end
-
-	if data.action == 'new' then
-		Editor.CurrentFileName = data.file
-		Mapper.RemoveObjects()
-	end
-
-
-	cb('OK')
-end)
-
-RegisterNUICallback('editor.get_object', function(data, cb)
-	cb(Editor.ObjectList[data.num])
-end)
-
-RegisterNUICallback('editor.get_objects', function(data, cb)
-
-	local objects = {}
-
-	for i=1, #Editor.ObjectList, 1 do
-
-		local terms = stringsplit(data.q)
-		local match = true
-
-		for j=1, #terms, 1 do
-			if not string.match(Editor.ObjectList[i], terms[j]) then
-				match = false
-				break
-			end
-		end
-
-		if match then
-			table.insert(objects, {
-				name = Editor.ObjectList[i],
-				hash = GetHashKey(Editor.ObjectList[i]),
-				num  = i + 2
-			})
-		end
-
-	end
-
-	cb(objects)
-end)
-
-RegisterNUICallback('editor.get_nodes', function(data, cb)
-
-	local nodes = {}
-
-	for i=1, #Mapper.Objects, 1 do
-		if Mapper.Objects[i] ~= nil then
-
-			local node = {
-				key   = i,
-				title = '[' .. i .. '] ' .. Mapper.Objects[i].name,
-			}
-
-			table.insert(nodes, node)
-		end
-	end
-
-	cb(nodes)
-
-end)
-
-RegisterNUICallback('editor.select_node', function(data, cb)
-	Editor.SelectObject(Mapper.Objects[data.id])
-	cb('OK')
-end)
-
-RegisterNUICallback('editor.rename_node', function(data, cb)
-	Mapper.Objects[data.id]:setName(data.name)
-	cb('OK')
-end)
-
-RegisterNUICallback('editor.delete_node', function(data, cb)
-	Mapper.RemoveObject(data.id)
-	cb('OK')
-end)
-
-RegisterNUICallback('editor.get_object_infos', function(data, cb)
-
-	if #Editor.SelectedObjects == 0 then
-		cb(false)
-	else
-		local infos = Editor.SelectedObjects[1]:serialize()
-		cb(infos)
-	end
-
-end)
-
-RegisterNUICallback('editor.set_object_position', function(data, cb)
-	
-	if #Editor.SelectedObjects > 0 then
-
-			local actions = {}
-
-			local lastPos = {
-				x = Editor.SelectedObjects[1].pos.x,
-				y = Editor.SelectedObjects[1].pos.y,
-				z = Editor.SelectedObjects[1].pos.z,
-			}
-
-			table.insert(actions, {
-				type = 'move',
-				obj  = Editor.SelectedObjects[1],
-				pos  = {
-					x = Editor.SelectedObjects[1].pos.x,
-					y = Editor.SelectedObjects[1].pos.y,
-					z = Editor.SelectedObjects[1].pos.z,
-				}
-			})
-
-			Editor.SelectedObjects[1]:move(data.x, data.y, data.z)
-
-			local posDiff = {
-				x = Editor.SelectedObjects[1].pos.x - lastPos.x,
-				y = Editor.SelectedObjects[1].pos.y - lastPos.y,
-				z = Editor.SelectedObjects[1].pos.z - lastPos.z
-			}
-
-			for i=2, #Editor.SelectedObjects, 1 do
-
-				table.insert(actions, {
-					type = 'move',
-					obj  = Editor.SelectedObjects[i],
-					pos  = {
-						x = Editor.SelectedObjects[i].pos.x,
-						y = Editor.SelectedObjects[i].pos.y,
-						z = Editor.SelectedObjects[i].pos.z,
-					}
-				})
-
-				Editor.SelectedObjects[i]:move(
-					Editor.SelectedObjects[i].pos.x + posDiff.x,
-					Editor.SelectedObjects[i].pos.y + posDiff.y,
-					Editor.SelectedObjects[i].pos.z + posDiff.z
-				)
-
-			end
-
-			Editor.AddPreviousActions(actions)
-
-	end
-	cb('OK')
-end)
-
-RegisterNUICallback('editor.set_object_rotation', function(data, cb)
-	
-	if #Editor.SelectedObjects > 0 then
-
-		local actions = {}
-
-		for i=1, #Editor.SelectedObjects, 1 do
-
-			table.insert(actions, {
-				type = 'rotate',
-				obj  = Editor.SelectedObjects[i],
-				rot  = {
-					x = Editor.SelectedObjects[i].rot.x,
-					y = Editor.SelectedObjects[i].rot.y,
-					z = Editor.SelectedObjects[i].rot.z,
-				}
-			})
-
-			Editor.SelectedObjects[i]:rotate(data.x, data.y, data.z)
-		end
-
-		Editor.AddPreviousActions(actions)
-
-	end
-
-	cb('OK')
-end)
-
-RegisterNUICallback('editor.tool.object.select', function(data, cb)
-
-	for i=1, #Editor.ObjectSelectorCreatedObjects, 1 do
-		Editor.ObjectSelectorCreatedObjects[i]:deleteRef()
-	end
-
-	Editor.ObjectSelectorCreatedObjects = {}
-
-	local right, forward, up, at = GetCamMatrix(Editor.Cam)
-	local right, left            = GetModelDimensions(GetHashKey(data.name))
-	local size                   = {x = left.x - right.x, y = left.y - right.y, z = left.z - right.z}
-	local objectPos              = GetCamCoord(Editor.Cam) + forward * (size.y + 3.0)
-	
-	local obj = MapperObject:create(data.name, objectPos.x, objectPos.y, objectPos.z, 0, 0, 0, false, false, data.dynamic, data.frozen, function(obj)
-		table.insert(Editor.ObjectSelectorCreatedObjects, obj)
-	end)
-
-	Editor.SelectObject(obj, false)
-
-end)
-
-RegisterNUICallback('editor.set_object.freeze', function(data, cb)
-	if Editor.SelectedObject ~= nil then
-		Editor.SelectedObject.frozen = data.freeze
-		FreezeEntityPosition(Editor.SelectedObject.ref, data.freeze)
-	end
-end)
-
-RegisterNUICallback('editor.set_object.dynamic', function(data, cb)
-	if Editor.SelectedObject ~= nil then
-		Editor.SelectedObject.dynamic = data.dynamic
-		FreezeEntityPosition(Editor.SelectedObject.ref, data.dynamic)
-	end
-end)
-
--- Loop
-Citizen.CreateThread(function()
-
-	while true do
-
-		Citizen.Wait(0)
-
-		if Editor.Started then
-
-			local playerPed = GetPlayerPed(-1)
-
-			-- Disable collision
-      for i=0, 32, 1 do
-        if i ~= PlayerId() then
-          local otherPlayerPed = GetPlayerPed(i)
-          SetEntityNoCollisionEntity(playerPed,  otherPlayerPed,  true)
-        end
-      end
-
-      -- Disable controls
-			DisableControlAction(0, 30,   true) -- MoveLeftRight
-			DisableControlAction(0, 31,   true) -- MoveUpDown
-      DisableControlAction(0, 1,    true) -- LookLeftRight
-      DisableControlAction(0, 2,    true) -- LookUpDown
-      DisableControlAction(0, 25,   true) -- Input Aim
-			DisableControlAction(0, 106,  true) -- Vehicle Mouse Control Override
-
-      DisableControlAction(0, 24,   true) -- Input Attack
-      DisableControlAction(0, 140,  true) -- Melee Attack Alternate
-      DisableControlAction(0, 141,  true) -- Melee Attack Alternate
-      DisableControlAction(0, 142,  true) -- Melee Attack Alternate
-      DisableControlAction(0, 257,  true) -- Input Attack 2
-      DisableControlAction(0, 263,  true) -- Input Melee Attack
-      DisableControlAction(0, 264,  true) -- Input Melee Attack 2
-
-      DisableControlAction(0, 12,   true) -- Weapon Wheel Up Down
-      DisableControlAction(0, 14,   true) -- Weapon Wheel Next
-      DisableControlAction(0, 15,   true) -- Weapon Wheel Prev
-      DisableControlAction(0, 16,   true) -- Select Next Weapon
-      DisableControlAction(0, 17,   true) -- Select Prev Weapon
-
-      -- Reset playre position
-      local camCoords = GetCamCoord(Editor.Cam)
-			SetEntityCoords(playerPed, camCoords.x, camCoords.y, camCoords.z + 10.0)
-
-      -- Hint
-			SetTextComponentFormat('STRING')
-
-			local hint = Editor.Tools[Editor.CurrentTool].hint
-
-			if Editor.SelectedObjects[1] ~= nil then
-
-				local model = Editor.SelectedObjects[1].hash
-
-				for i=1, #Mapper.Editor.ObjectList, 1 do
-					if GetHashKey(Mapper.Editor.ObjectList[i]) == Editor.SelectedObjects[1].hash then
-						model = Mapper.Editor.ObjectList[i]
-						break
-					end
-				end
-
-				hint = hint .. ' - [' .. (model or '...') .. ']'
-			end
-
-			AddTextComponentString(hint)
-			DisplayHelpTextFromStringLabel(0, 0, false, -1)
-
-      -- Keyboard shortcuts
-      for name, config in pairs(Editor.Tools) do
-	      if IsControlJustReleased(0, config.shortcut) or IsDisabledControlJustReleased(0, config.shortcut) then
-	      	Editor.SelectTool(name)
-	      end
-      end
-
-      -- Toggle Menu
-      if IsControlJustReleased(0, Keys['R']) then
-				Editor.ShowMenu()
-			end
-
-      -- Handlers
-      if Editor.FreeCamEnabled then
-      	Editor.HandleFreeCamThisFrame()
-      end
-
-      if #Editor.SelectedObjects > 0 then
-      	Editor.HandleSelectedObjectsThisFrame()
-      end
-
-      -- Tools
-      Editor.Tools[Editor.CurrentTool].run()
-    end
-
-  end
-
 end)
